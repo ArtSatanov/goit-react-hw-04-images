@@ -9,7 +9,6 @@ import { Layout } from './App.styled';
 export const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [gallaryItems, setGallaryItems] = useState([]);
-  const [error, setError] = useState(false);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [totalHits, setTotalHits] = useState('');
@@ -36,7 +35,6 @@ export const App = () => {
         setGallaryItems(prevState => [...prevState, ...images.hits]);
         setTotalHits(images.totalHits);
       } catch (error) {
-        setError(true);
       } finally {
         setLoading(false);
       }
