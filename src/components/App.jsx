@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { fetchImages } from '../api';
@@ -6,67 +6,51 @@ import { Button } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { Layout } from './App.styled';
 
-export class App extends Component {
-  state = {
-    searchQuery: '',
-    gallaryItems: [],
-    error: false,
-    page: 1,
-    loading: false,
-    totalHits: '',
+export const App = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [gallaryItems, setGallaryItems] = useState([]);
+  const [error, setError] = useState(false);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [totalHits, setTotalHits] = useState('');
+
+  const handleSubmit = searchQuery => {
+    setSearchQuery(searchQuery);
+    setPage(1);
+    setGallaryItems([]);
+    setTotalHits('');
   };
 
-  handleSubmit = searchQuery => {
-    this.setState({
-      searchQuery,
-      page: 1,
-      gallaryItems: [],
-      totalHits: '',
-    });
+  const handleLoadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchQuery !== this.state.searchQuery ||
-      prevState.page !== this.state.page
-    ) {
+  useEffect(() => {
+    if (searchQuery === '') {
+      return;
+    }
+    async function getImages() {
       try {
-        this.setState({ loading: true });
-        const images = await fetchImages(
-          this.state.searchQuery,
-          this.state.page
-        );
-
-        this.setState({
-          gallaryItems: [...this.state.gallaryItems, ...images.hits],
-          totalHits: images.totalHits,
-        });
+        setLoading(true);
+        const images = await fetchImages(searchQuery, page);
+        setGallaryItems(prevState => [...prevState, ...images.hits]);
+        setTotalHits(images.totalHits);
       } catch (error) {
-        this.setState({ error: true });
+        setError(true);
       } finally {
-        this.setState({ loading: false });
+        setLoading(false);
       }
     }
-  }
 
-  render() {
-    return (
-      <Layout>
-        <Searchbar onSubmit={this.handleSubmit} />
-        {this.state.loading && <Loader />}
-        {this.state.gallaryItems.length > 0 && (
-          <ImageGallery images={this.state.gallaryItems} />
-        )}
-        {Number(this.state.totalHits) / 12 >= this.state.page && (
-          <Button OnClick={this.handleLoadMore} />
-        )}
-      </Layout>
-    );
-  }
-}
+    getImages();
+  }, [searchQuery, page]);
+
+  return (
+    <Layout>
+      <Searchbar onSubmit={handleSubmit} />
+      {loading && <Loader />}
+      {gallaryItems.length > 0 && <ImageGallery images={gallaryItems} />}
+      {Number(totalHits) / 12 >= page && <Button OnClick={handleLoadMore} />}
+    </Layout>
+  );
+};
