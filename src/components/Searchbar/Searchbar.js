@@ -8,7 +8,7 @@ import {
 import { ImSearch } from 'react-icons/im';
 
 export const Searchbar = ({ onSubmit }) => {
-  handleSubmit = event => {
+  const handleSubmit = event => {
     event.preventDefault();
     const myFormData = new FormData(event.currentTarget);
     const searchData = Object.fromEntries(myFormData);
